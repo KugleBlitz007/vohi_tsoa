@@ -33,7 +33,7 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add Worker'),
+        title: const Text('Ajouter un maçon'),
         content: Form(
           key: _formKey,
           child: Column(
@@ -41,15 +41,15 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
             children: [
               TextFormField(
                 controller: nameController,
-                decoration: const InputDecoration(labelText: 'Name'),
-                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                decoration: const InputDecoration(labelText: 'Nom'),
+                validator: (v) => v == null || v.isEmpty ? 'Requis' : null,
               ),
               const SizedBox(height: 8),
               TextFormField(
                 controller: weeklyPayController,
-                decoration: const InputDecoration(labelText: 'Weekly pay'),
+                decoration: const InputDecoration(labelText: 'Paye hebdomadaire'),
                 keyboardType: TextInputType.number,
-                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                validator: (v) => v == null || v.isEmpty ? 'Requis' : null,
               ),
             ],
           ),
@@ -57,9 +57,10 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: const Text('Annuler'),
           ),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(elevation: 0),
             onPressed: () async {
               if (_formKey.currentState!.validate()) {
                 final worker = Worker(
@@ -74,7 +75,7 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
                 if (mounted) Navigator.pop(context);
               }
             },
-            child: const Text('Add'),
+            child: const Text('Ajouter'),
           ),
         ],
       ),
@@ -98,12 +99,12 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
     final weekNumber = getCurrentWeekNumber();
     final year = simulatedNow.year;
     return Scaffold(
-      appBar: AppBar(title: const Text('Payments')),
+      appBar: AppBar(title: const Text('Gestion de maçon'), elevation: 0),
       body: StreamBuilder<List<Worker>>(
         stream: _workerService.getWorkersForCurrentWeek(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return Center(child: Text('Error: \\${snapshot.error}'));
+            return Center(child: Text('Erreur: \\${snapshot.error}'));
           }
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -132,33 +133,35 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              Text('Week $weekNumber of $year', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              Text('Semaine $weekNumber de $year', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
               Card(
                 color: Colors.red[50],
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 0,
                 child: Padding(
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     children: [
-                      const Text('Outstanding Payments', style: TextStyle(fontWeight: FontWeight.bold)),
+                      const Text('Paiements en attente', style: TextStyle(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8),
-                      Text('€${totalToPay.toStringAsFixed(2)}', style: const TextStyle(fontSize: 24, color: Colors.red, fontWeight: FontWeight.bold)),
+                      Text('Ar ${totalToPay.toStringAsFixed(2)}', style: const TextStyle(fontSize: 24, color: Colors.red, fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),
               ),
               const SizedBox(height: 24),
-              const Text('All the macon', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text('Tous les maçons', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
               ...workers.map((w) => Card(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                elevation: 0,
                 child: ListTile(
                   title: Text(w.name, style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: w.advanceAmount > 0
-                      ? Text('Advance: €${w.advanceAmount.toStringAsFixed(2)}' + (w.advanceNextWeek ? ' (next week)' : ''))
+                      ? Text('Avance: Ar ${w.advanceAmount.toStringAsFixed(2)}' + (w.advanceNextWeek ? ' (semaine prochaine)' : ''))
                       : null,
-                  trailing: Text('€${_calculateAmountToPay(w, weekNumber).toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+                  trailing: Text('Ar ${_calculateAmountToPay(w, weekNumber).toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
                   onTap: () {
                     showDialog(
                       context: context,
@@ -170,13 +173,14 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
               if (workers.isEmpty)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 24),
-                  child: Text('No workers to pay this week.', style: TextStyle(color: Colors.grey)),
+                  child: Text('Aucun maçon à payer cette semaine.', style: TextStyle(color: Colors.grey)),
                 ),
             ],
           );
         },
       ),
       floatingActionButton: FloatingActionButton(
+        elevation: 0,
         onPressed: _showAddWorkerDialog,
         child: const Icon(Icons.add),
       ),
@@ -217,7 +221,7 @@ class _EditWorkerDialogState extends State<_EditWorkerDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Edit Worker'),
+      title: const Text('Modifier le maçon'),
       content: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -226,15 +230,15 @@ class _EditWorkerDialogState extends State<_EditWorkerDialog> {
             children: [
               TextFormField(
                 controller: nameController,
-                decoration: const InputDecoration(labelText: 'Name'),
-                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                decoration: const InputDecoration(labelText: 'Nom'),
+                validator: (v) => v == null || v.isEmpty ? 'Requis' : null,
               ),
               const SizedBox(height: 8),
               TextFormField(
                 controller: weeklyPayController,
-                decoration: const InputDecoration(labelText: 'Weekly pay'),
+                decoration: const InputDecoration(labelText: 'Paye hebdomadaire'),
                 keyboardType: TextInputType.number,
-                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                validator: (v) => v == null || v.isEmpty ? 'Requis' : null,
               ),
               const SizedBox(height: 8),
               Row(
@@ -242,7 +246,7 @@ class _EditWorkerDialogState extends State<_EditWorkerDialog> {
                   Expanded(
                     child: TextFormField(
                       controller: advanceController,
-                      decoration: const InputDecoration(labelText: 'Advance'),
+                      decoration: const InputDecoration(labelText: 'Avance'),
                       keyboardType: TextInputType.number,
                     ),
                   ),
@@ -252,7 +256,7 @@ class _EditWorkerDialogState extends State<_EditWorkerDialog> {
                       setState(() => advanceNextWeek = val ?? false);
                     },
                   ),
-                  const Text('Report to next week'),
+                  const Text('Reporter à la prochaine'),
                 ],
               ),
               const SizedBox(height: 8),
@@ -260,10 +264,10 @@ class _EditWorkerDialogState extends State<_EditWorkerDialog> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Unpaid Weeks:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text('Semaines non payées:', style: TextStyle(fontWeight: FontWeight.bold)),
                     ...unpaidWeeks.entries.map((e) => Row(
                       children: [
-                        Expanded(child: Text('Week ${e.key}: €${e.value.toStringAsFixed(2)}')),
+                        Expanded(child: Text('Semaine ${e.key}: Ar ${e.value.toStringAsFixed(2)}')),
                         Checkbox(
                           value: paidWeeks[e.key] ?? false,
                           onChanged: (val) {
@@ -272,7 +276,7 @@ class _EditWorkerDialogState extends State<_EditWorkerDialog> {
                             });
                           },
                         ),
-                        const Text('Paid'),
+                        const Text('Payé'),
                       ],
                     )),
                   ],
@@ -284,9 +288,10 @@ class _EditWorkerDialogState extends State<_EditWorkerDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: const Text('Annuler'),
         ),
         ElevatedButton(
+          style: ElevatedButton.styleFrom(elevation: 0),
           onPressed: () async {
             if (_formKey.currentState!.validate()) {
               // Remove paid weeks
@@ -304,7 +309,7 @@ class _EditWorkerDialogState extends State<_EditWorkerDialog> {
               if (mounted) Navigator.pop(context);
             }
           },
-          child: const Text('Save'),
+          child: const Text('Enregistrer'),
         ),
       ],
     );

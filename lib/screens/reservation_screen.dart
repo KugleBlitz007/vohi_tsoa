@@ -56,7 +56,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
     int courtesyCount = 0;
     List<String> selectedServices = [];
     final List<String> allServices = [
-      'Spa', 'Pool', 'Massage', 'Sauna', 'Gym', 'Other'
+      'Piscine', 'Terrasse', 'Autres'
     ];
 
     showDialog(
@@ -65,7 +65,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: const Text('Add Reservation'),
+              title: const Text('Ajouter une réservation'),
               content: SingleChildScrollView(
                 child: Form(
                   key: _formKey,
@@ -74,15 +74,15 @@ class _ReservationScreenState extends State<ReservationScreen> {
                     children: [
                       TextFormField(
                         controller: nameController,
-                        decoration: const InputDecoration(labelText: 'Name'),
-                        validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                        decoration: const InputDecoration(labelText: 'Nom'),
+                        validator: (v) => v == null || v.isEmpty ? 'Requis' : null,
                       ),
                       const SizedBox(height: 8),
                       TextFormField(
                         controller: numberOfPeopleController,
-                        decoration: const InputDecoration(labelText: 'Number of people'),
+                        decoration: const InputDecoration(labelText: 'Nombre de personnes'),
                         keyboardType: TextInputType.number,
-                        validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                        validator: (v) => v == null || v.isEmpty ? 'Requis' : null,
                       ),
                       const SizedBox(height: 8),
                       Row(
@@ -93,16 +93,16 @@ class _ReservationScreenState extends State<ReservationScreen> {
                               setState(() => courtesy = val ?? false);
                             },
                           ),
-                          const Text('Courtesy'),
+                          const Text('Couverts'),
                           if (courtesy)
                             SizedBox(
                               width: 60,
                               child: TextFormField(
                                 controller: courtesyController,
-                                decoration: const InputDecoration(labelText: 'How many?'),
+                                decoration: const InputDecoration(labelText: 'Combien?'),
                                 keyboardType: TextInputType.number,
                                 validator: (v) {
-                                  if (courtesy && (v == null || v.isEmpty)) return 'Required';
+                                  if (courtesy && (v == null || v.isEmpty)) return 'Requis';
                                   return null;
                                 },
                               ),
@@ -132,30 +132,30 @@ class _ReservationScreenState extends State<ReservationScreen> {
                       const SizedBox(height: 8),
                       TextFormField(
                         controller: phoneController,
-                        decoration: const InputDecoration(labelText: 'Phone number'),
+                        decoration: const InputDecoration(labelText: 'Numéro de téléphone'),
                         keyboardType: TextInputType.phone,
-                        validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                        validator: (v) => v == null || v.isEmpty ? 'Requis' : null,
                       ),
                       const SizedBox(height: 8),
                       TextFormField(
                         controller: moneyAdvanceController,
-                        decoration: const InputDecoration(labelText: 'Money advance'),
+                        decoration: const InputDecoration(labelText: 'Avance d\'argent'),
                         keyboardType: TextInputType.number,
-                        validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                        validator: (v) => v == null || v.isEmpty ? 'Requis' : null,
                       ),
                       const SizedBox(height: 8),
                       TextFormField(
                         controller: restToPayController,
-                        decoration: const InputDecoration(labelText: 'Rest to pay'),
+                        decoration: const InputDecoration(labelText: 'Reste à payer'),
                         keyboardType: TextInputType.number,
-                        validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                        validator: (v) => v == null || v.isEmpty ? 'Requis' : null,
                       ),
                       const SizedBox(height: 8),
                       Row(
                         children: [
                           Expanded(
                             child: Text(selectedDate == null
-                                ? 'Select date'
+                                ? 'Sélectionner une date'
                                 : DateFormat('yyyy-MM-dd').format(selectedDate!)),
                           ),
                           IconButton(
@@ -178,7 +178,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
                         children: [
                           Expanded(
                             child: Text(selectedTime == null
-                                ? 'Select time'
+                                ? 'Sélectionner le temps'
                                 : selectedTime!.format(context)),
                           ),
                           IconButton(
@@ -202,9 +202,10 @@ class _ReservationScreenState extends State<ReservationScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
+                  child: const Text('Annuler'),
                 ),
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(elevation: 0),
                   onPressed: () async {
                     if (_formKey.currentState!.validate() && selectedDate != null && selectedTime != null) {
                       final dt = DateTime(
@@ -231,7 +232,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
                       if (mounted) Navigator.pop(context);
                     }
                   },
-                  child: const Text('Add'),
+                  child: const Text('Ajouter'),
                 ),
               ],
             );
@@ -244,12 +245,12 @@ class _ReservationScreenState extends State<ReservationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Reservations')),
+      appBar: AppBar(title: const Text('Réservations'), elevation: 0),
       body: StreamBuilder<List<Reservation>>(
         stream: _reservationService.getAllReservations(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return Center(child: Text('Error: \\${snapshot.error}'));
+            return Center(child: Text('Erreur: \\${snapshot.error}'));
           }
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -259,7 +260,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
           final allDates = grouped.keys.toList()..sort((a, b) => DateFormat('EEE, MMM d, yyyy').parse(a).compareTo(DateFormat('EEE, MMM d, yyyy').parse(b)));
 
           if (allDates.isEmpty) {
-            return const Center(child: Text('No reservations found.'));
+            return const Center(child: Text('Aucune réservation pour le moment'));
           }
 
           return ListView.builder(
@@ -277,7 +278,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
                   if (events.isEmpty)
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                      child: Text('No event', style: TextStyle(color: Colors.grey)),
+                      child: Text('Aucun événement', style: TextStyle(color: Colors.grey)),
                     )
                   else
                     ...events.map((event) => _ReservationCard(event: event)).toList(),
@@ -289,6 +290,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
       ),
       floatingActionButton: _isAdmin
           ? FloatingActionButton(
+              elevation: 0,
               onPressed: _showAddReservationDialog,
               child: const Icon(Icons.add),
             )
@@ -307,6 +309,7 @@ class _ReservationCard extends StatelessWidget {
     final servicesStr = event.services.join(', ');
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      elevation: 0,
       child: ListTile(
         leading: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -314,7 +317,7 @@ class _ReservationCard extends StatelessWidget {
             Text(timeStr, style: const TextStyle(fontWeight: FontWeight.bold)),
             event.restToPay == 0
                 ? const Text('PAID', style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold))
-                : Text('€${event.restToPay.toStringAsFixed(2)}', style: const TextStyle(color: Colors.red, fontSize: 12)),
+                : Text('Ar ${event.restToPay.toStringAsFixed(2)}', style: const TextStyle(color: Colors.red, fontSize: 12)),
           ],
         ),
         title: Text(event.name, style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -349,11 +352,11 @@ class _ReservationDetailsDialog extends StatelessWidget {
           children: [
             Text('Time: ${DateFormat('yyyy-MM-dd HH:mm').format(event.time)}'),
             Text('Number of people: ${event.numberOfPeople}'),
-            Text('Courtesy: ${event.courtesy ? 'Yes (${event.courtesyCount})' : 'No'}'),
+            Text('Couverts: ${event.courtesy ? 'Yes (${event.courtesyCount})' : 'No'}'),
             Text('Services: ${event.services.join(', ')}'),
             Text('Phone: ${event.phone}'),
-            Text('Money advance: €${event.moneyAdvance.toStringAsFixed(2)}'),
-            Text('Rest to pay: €${event.restToPay.toStringAsFixed(2)}'),
+            Text('Money advance: Ar ${event.moneyAdvance.toStringAsFixed(2)}'),
+            Text('Rest to pay: Ar ${event.restToPay.toStringAsFixed(2)}'),
             Text('Date: ${DateFormat('yyyy-MM-dd').format(event.date)}'),
           ],
         ),
@@ -399,7 +402,7 @@ class _EditReservationDialogState extends State<_EditReservationDialog> {
   bool courtesy = false;
   List<String> selectedServices = [];
   final List<String> allServices = [
-    'Spa', 'Pool', 'Massage', 'Sauna', 'Gym', 'Other'
+    'Piscine', 'Terrasse', 'Autres'
   ];
   final _formKey = GlobalKey<FormState>();
 
@@ -422,7 +425,7 @@ class _EditReservationDialogState extends State<_EditReservationDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Edit Reservation'),
+      title: const Text('Modifier la réservation'),
       content: SingleChildScrollView(
         child: Form(
           key: _formKey,
@@ -431,15 +434,15 @@ class _EditReservationDialogState extends State<_EditReservationDialog> {
             children: [
               TextFormField(
                 controller: nameController,
-                decoration: const InputDecoration(labelText: 'Name'),
-                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                decoration: const InputDecoration(labelText: 'Nom'),
+                validator: (v) => v == null || v.isEmpty ? 'Requis' : null,
               ),
               const SizedBox(height: 8),
               TextFormField(
                 controller: numberOfPeopleController,
-                decoration: const InputDecoration(labelText: 'Number of people'),
+                decoration: const InputDecoration(labelText: 'Nombre de personnes'),
                 keyboardType: TextInputType.number,
-                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                validator: (v) => v == null || v.isEmpty ? 'Requis' : null,
               ),
               const SizedBox(height: 8),
               Row(
@@ -450,16 +453,16 @@ class _EditReservationDialogState extends State<_EditReservationDialog> {
                       setState(() => courtesy = val ?? false);
                     },
                   ),
-                  const Text('Courtesy'),
+                  const Text('Couverts'),
                   if (courtesy)
                     SizedBox(
                       width: 60,
                       child: TextFormField(
                         controller: courtesyController,
-                        decoration: const InputDecoration(labelText: 'How many?'),
+                        decoration: const InputDecoration(labelText: 'Combien?'),
                         keyboardType: TextInputType.number,
                         validator: (v) {
-                          if (courtesy && (v == null || v.isEmpty)) return 'Required';
+                          if (courtesy && (v == null || v.isEmpty)) return 'Requis';
                           return null;
                         },
                       ),
@@ -489,23 +492,23 @@ class _EditReservationDialogState extends State<_EditReservationDialog> {
               const SizedBox(height: 8),
               TextFormField(
                 controller: phoneController,
-                decoration: const InputDecoration(labelText: 'Phone number'),
+                decoration: const InputDecoration(labelText: 'Numéro de téléphone'),
                 keyboardType: TextInputType.phone,
-                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                validator: (v) => v == null || v.isEmpty ? 'Requis' : null,
               ),
               const SizedBox(height: 8),
               TextFormField(
                 controller: moneyAdvanceController,
-                decoration: const InputDecoration(labelText: 'Money advance'),
+                decoration: const InputDecoration(labelText: 'Avance d\'argent'),
                 keyboardType: TextInputType.number,
-                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                validator: (v) => v == null || v.isEmpty ? 'Requis' : null,
               ),
               const SizedBox(height: 8),
               TextFormField(
                 controller: restToPayController,
-                decoration: const InputDecoration(labelText: 'Rest to pay'),
+                decoration: const InputDecoration(labelText: 'Reste à payer'),
                 keyboardType: TextInputType.number,
-                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                validator: (v) => v == null || v.isEmpty ? 'Requis' : null,
               ),
               const SizedBox(height: 8),
               Row(
@@ -555,9 +558,10 @@ class _EditReservationDialogState extends State<_EditReservationDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: const Text('Annuler'),
         ),
         ElevatedButton(
+          style: ElevatedButton.styleFrom(elevation: 0),
           onPressed: () async {
             if (_formKey.currentState!.validate()) {
               final dt = DateTime(
@@ -584,7 +588,7 @@ class _EditReservationDialogState extends State<_EditReservationDialog> {
               if (mounted) Navigator.pop(context);
             }
           },
-          child: const Text('Save'),
+          child: const Text('Enregistrer'),
         ),
       ],
     );

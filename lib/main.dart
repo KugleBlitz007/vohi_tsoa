@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Page d\'accueil',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -38,7 +38,7 @@ class MyApp extends StatelessWidget {
         //
         // This works for code too, not just values: Most code changes can be
         // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Color(0xFF00a8a3)),
       ),
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
@@ -48,7 +48,7 @@ class MyApp extends StatelessWidget {
           }
           
           if (snapshot.hasData) {
-            return const MyHomePage(title: 'Flutter Demo Home Page');
+            return const MyHomePage(title: 'Page d\'accueil');
           }
           
           return const LoginScreen();
@@ -131,9 +131,10 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
+        elevation: 0,
         actions: [
           if (_isAdmin)
-            IconButton(
+           /*  IconButton(
               icon: const Icon(Icons.admin_panel_settings),
               onPressed: () {
                 // TODO: Navigate to admin panel
@@ -142,7 +143,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 );
               },
               tooltip: 'Admin Panel',
-            ),
+            ), */
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: _signOut,
@@ -158,7 +159,7 @@ class _MyHomePageState extends State<MyHomePage> {
           return Card(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-            elevation: 2,
+            elevation: 0,
             child: ListTile(
               contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
               leading: ClipRRect(
@@ -193,11 +194,12 @@ class _MyHomePageState extends State<MyHomePage> {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
+      /* floatingActionButton: FloatingActionButton(
+        elevation: 0,
         onPressed: _incrementCounter,
         tooltip: 'Increment',
         child: const Icon(Icons.add),
-      ),
+      ), */
     );
   }
 }
