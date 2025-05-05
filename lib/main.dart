@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'screens/login_screen.dart';
 import 'screens/test_items_screen.dart';
 import 'screens/reservation_screen.dart';
+import 'screens/payments_screen.dart';
 import 'services/auth_service.dart';
 import 'models/home_section.dart';
 
@@ -179,6 +180,11 @@ class _MyHomePageState extends State<MyHomePage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const ReservationScreen()),
+                  );
+                } else if (index == 1) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const PaymentsScreen()),
                   );
                 }
                 // TODO: Add navigation for other sections
