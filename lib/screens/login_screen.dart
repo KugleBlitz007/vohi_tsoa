@@ -95,10 +95,11 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const Text(
-                  'Welcome Back!',
+                  'Bienvenue à VohiTsoa',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
+                    color: Color(0xFF00a8a3),
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -125,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextFormField(
                   controller: _passwordController,
                   decoration: const InputDecoration(
-                    labelText: 'Password',
+                    labelText: 'Mot de passe',
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.lock),
                   ),
@@ -150,7 +151,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 16),
                 TextButton(
                   onPressed: _navigateToRegister,
-                  child: const Text("Don't have an account? Sign Up"),
+                  child: const Text("Pas de compte? Sign Up"),
                 ),
               ],
             ),

@@ -78,7 +78,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Register'),
+        title: const Text("S'inscrire"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -108,7 +108,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               TextFormField(
                 controller: _passwordController,
                 decoration: const InputDecoration(
-                  labelText: 'Password',
+                  labelText: 'Mot de passe',
                   border: OutlineInputBorder(),
                 ),
                 obscureText: true,
@@ -126,7 +126,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               TextFormField(
                 controller: _confirmPasswordController,
                 decoration: const InputDecoration(
-                  labelText: 'Confirm Password',
+                  labelText: 'Confirmer le mot de passe',
                   border: OutlineInputBorder(),
                 ),
                 obscureText: true,

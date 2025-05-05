@@ -90,6 +90,7 @@ class _TestItemsScreenState extends State<TestItemsScreen> {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(elevation: 0),
             onPressed: () async {
               if (_formKey.currentState!.validate()) {
                 try {
@@ -128,6 +129,7 @@ class _TestItemsScreenState extends State<TestItemsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Test Items'),
+        elevation: 0,
         actions: [
           if (_isAdmin)
             IconButton(
@@ -168,6 +170,7 @@ class _TestItemsScreenState extends State<TestItemsScreen> {
                   horizontal: 16,
                   vertical: 8,
                 ),
+                elevation: 0,
                 child: ListTile(
                   title: Text(item.title),
                   subtitle: Text(item.description),
