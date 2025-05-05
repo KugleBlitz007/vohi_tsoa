@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'screens/login_screen.dart';
+import 'screens/test_items_screen.dart';
 import 'services/auth_service.dart';
 
 void main() async {
@@ -75,6 +76,22 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
   final _authService = AuthService();
+  bool _isAdmin = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAdminStatus();
+  }
+
+  Future<void> _checkAdminStatus() async {
+    final isAdmin = await _authService.isUserAdmin();
+    if (mounted) {
+      setState(() {
+        _isAdmin = isAdmin;
+      });
+    }
+  }
 
   void _incrementCounter() {
     setState(() {
@@ -92,6 +109,13 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  void _navigateToTestItems() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const TestItemsScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -99,6 +123,17 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
         actions: [
+          if (_isAdmin)
+            IconButton(
+              icon: const Icon(Icons.admin_panel_settings),
+              onPressed: () {
+                // TODO: Navigate to admin panel
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Admin Panel - Coming Soon')),
+                );
+              },
+              tooltip: 'Admin Panel',
+            ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: _signOut,
@@ -125,10 +160,27 @@ class _MyHomePageState extends State<MyHomePage> {
           // wireframe for each widget.
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            if (_isAdmin)
+              const Padding(
+                padding: EdgeInsets.only(bottom: 16.0),
+                child: Text(
+                  'Admin Mode',
+                  style: TextStyle(
+                    color: Colors.green,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
             const Text('You have pushed the button this many times:'),
             Text(
               '$_counter',
               style: Theme.of(context).textTheme.headlineMedium,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: _navigateToTestItems,
+              icon: const Icon(Icons.list),
+              label: const Text('View Test Items'),
             ),
           ],
         ),

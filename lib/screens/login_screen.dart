@@ -27,14 +27,44 @@ class _LoginScreenState extends State<LoginScreen> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
       try {
-        await _authService.signInWithEmailAndPassword(
+        final credential = await _authService.signInWithEmailAndPassword(
           _emailController.text.trim(),
           _passwordController.text.trim(),
         );
+        
+        if (credential?.user != null) {
+          // Ensure user document exists in Firestore
+          await _authService.createUserDocument(credential!.user!);
+        }
       } catch (e) {
         if (mounted) {
+          String errorMessage = 'An error occurred during sign in';
+          
+          if (e.toString().contains('user-not-found')) {
+            errorMessage = 'No account found with this email. Please register first.';
+          } else if (e.toString().contains('wrong-password')) {
+            errorMessage = 'Incorrect password. Please try again.';
+          } else if (e.toString().contains('invalid-email')) {
+            errorMessage = 'Please enter a valid email address.';
+          } else if (e.toString().contains('user-disabled')) {
+            errorMessage = 'This account has been disabled. Please contact support.';
+          } else if (e.toString().contains('too-many-requests')) {
+            errorMessage = 'Too many failed attempts. Please try again later.';
+          }
+          
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(e.toString())),
+            SnackBar(
+              content: Text(errorMessage),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 4),
+              action: e.toString().contains('user-not-found') 
+                ? SnackBarAction(
+                    label: 'Register',
+                    textColor: Colors.white,
+                    onPressed: _navigateToRegister,
+                  )
+                : null,
+            ),
           );
         }
       } finally {

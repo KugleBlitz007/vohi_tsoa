@@ -21,3 +21,5 @@ samples, guidance on mobile development, and a full API reference.
 - whenever installing new things, kill the terminal
 
 - run flutter pub get to get all dependencies
+
+- Current authentication methods only use email based login and and sign up, so as long as we do not use more secure authentication like google sign in or others, we can ignore firebase's warnings about authentication

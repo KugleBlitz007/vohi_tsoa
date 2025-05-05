@@ -37,8 +37,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
         }
       } catch (e) {
         if (mounted) {
+          String errorMessage = 'An error occurred during registration';
+          
+          if (e.toString().contains('email-already-in-use')) {
+            errorMessage = 'This email is already registered. Please sign in instead.';
+          } else if (e.toString().contains('weak-password')) {
+            errorMessage = 'Password is too weak. Please use a stronger password.';
+          } else if (e.toString().contains('invalid-email')) {
+            errorMessage = 'Please enter a valid email address.';
+          } else if (e.toString().contains('operation-not-allowed')) {
+            errorMessage = 'Email/password accounts are not enabled. Please contact support.';
+          }
+          
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(e.toString())),
+            SnackBar(
+              content: Text(errorMessage),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 4),
+              action: e.toString().contains('email-already-in-use')
+                ? SnackBarAction(
+                    label: 'Sign In',
+                    textColor: Colors.white,
+                    onPressed: () {
+                      Navigator.pop(context); // Return to login screen
+                    },
+                  )
+                : null,
+            ),
           );
         }
       } finally {
