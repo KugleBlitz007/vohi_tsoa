@@ -3,7 +3,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'screens/login_screen.dart';
 import 'screens/test_items_screen.dart';
+import 'screens/reservation_screen.dart';
 import 'services/auth_service.dart';
+import 'models/home_section.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -78,6 +80,12 @@ class _MyHomePageState extends State<MyHomePage> {
   final _authService = AuthService();
   bool _isAdmin = false;
 
+  final List<HomeSection> _sections = [
+    HomeSection(title: 'Réservation', assetPath: 'assets/logo.JPG'),
+    HomeSection(title: 'Gestion de maçon', assetPath: 'assets/logo.JPG'),
+    // Add more sections as needed
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -141,55 +149,49 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ],
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            if (_isAdmin)
-              const Padding(
-                padding: EdgeInsets.only(bottom: 16.0),
-                child: Text(
-                  'Admin Mode',
-                  style: TextStyle(
-                    color: Colors.green,
-                    fontWeight: FontWeight.bold,
-                  ),
+      body: ListView.builder(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+        itemCount: _sections.length,
+        itemBuilder: (context, index) {
+          final section = _sections[index];
+          return Card(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+            elevation: 2,
+            child: ListTile(
+              contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              leading: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image.asset(
+                  section.assetPath,
+                  width: 48,
+                  height: 48,
+                  fit: BoxFit.cover,
                 ),
               ),
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+              title: Text(
+                section.title,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                if (index == 0) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ReservationScreen()),
+                  );
+                }
+                // TODO: Add navigation for other sections
+              },
             ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: _navigateToTestItems,
-              icon: const Icon(Icons.list),
-              label: const Text('View Test Items'),
-            ),
-          ],
-        ),
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _incrementCounter,
         tooltip: 'Increment',
         child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ),
     );
   }
 }
