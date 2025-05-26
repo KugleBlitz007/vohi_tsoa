@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/worker.dart';
 import '../services/worker_service.dart';
+import 'worker_form_screen.dart';
+import 'worker_detail_screen.dart';
 
 class PaymentsScreen extends StatefulWidget {
   const PaymentsScreen({super.key});
@@ -12,306 +14,362 @@ class PaymentsScreen extends StatefulWidget {
 
 class _PaymentsScreenState extends State<PaymentsScreen> {
   final WorkerService _workerService = WorkerService();
+  DateTime _selectedMonth = DateTime.now();
+  int _selectedYear = DateTime.now().year;
+  int _selectedWeek = 1;
+  bool _isWeekView = false;
 
-  // At the top of your PaymentsScreen class (for dev only)
-  DateTime simulatedNow = DateTime(2025, 5, 12); // Set to any date you want
-
-  int? lastWeekNumber;
-
-  int getCurrentWeekNumber() {
-    //final now = DateTime.now();
-    final now = simulatedNow; // Use simulatedNow instead of DateTime.now()
-    final firstDayOfYear = DateTime(now.year, 1, 1);
-    final daysPassed = now.difference(firstDayOfYear).inDays;
+  int getCurrentWeekNumber(DateTime date) {
+    final firstDayOfYear = DateTime(date.year, 1, 1);
+    final daysPassed = date.difference(firstDayOfYear).inDays;
     return ((daysPassed + firstDayOfYear.weekday) / 7).ceil();
   }
 
-  void _showAddWorkerDialog() {
-    final _formKey = GlobalKey<FormState>();
-    final nameController = TextEditingController();
-    final weeklyPayController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Ajouter un maçon'),
-        content: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: nameController,
-                decoration: const InputDecoration(labelText: 'Nom'),
-                validator: (v) => v == null || v.isEmpty ? 'Requis' : null,
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: weeklyPayController,
-                decoration: const InputDecoration(labelText: 'Paye hebdomadaire'),
-                keyboardType: TextInputType.number,
-                validator: (v) => v == null || v.isEmpty ? 'Requis' : null,
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(elevation: 0),
-            onPressed: () async {
-              if (_formKey.currentState!.validate()) {
-                final worker = Worker(
-                  id: '',
-                  name: nameController.text.trim(),
-                  weeklyPay: double.tryParse(weeklyPayController.text) ?? 0,
-                  unpaidWeeks: {},
-                  advanceAmount: 0,
-                  advanceNextWeek: false,
-                );
-                await _workerService.addWorker(worker);
-                if (mounted) Navigator.pop(context);
-              }
-            },
-            child: const Text('Ajouter'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  double _calculateAmountToPay(Worker w, int weekNumber) {
-    double unpaid = 0;
-    w.unpaidWeeks.forEach((k, v) {
-      if (k < weekNumber) unpaid += v;
-    });
-    double advance = 0;
-    if (!w.advanceNextWeek) {
-      advance = w.advanceAmount;
-    }
-    return w.weeklyPay + unpaid - advance;
+  @override
+  void initState() {
+    super.initState();
+    _selectedWeek = getCurrentWeekNumber(DateTime.now());
   }
 
   @override
   Widget build(BuildContext context) {
-    final weekNumber = getCurrentWeekNumber();
-    final year = simulatedNow.year;
     return Scaffold(
-      appBar: AppBar(title: const Text('Gestion de maçon'), elevation: 0),
-      body: StreamBuilder<List<Worker>>(
-        stream: _workerService.getWorkersForCurrentWeek(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(child: Text('Erreur: \\${snapshot.error}'));
-          }
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final workers = snapshot.data ?? [];
-
-          // Auto-uncheck advanceNextWeek if week has changed
-          if (lastWeekNumber != null && weekNumber != lastWeekNumber) {
-            for (final w in workers) {
-              if (w.advanceNextWeek && w.advanceAmount > 0) {
-                final updated = Worker(
-                  id: w.id,
-                  name: w.name,
-                  weeklyPay: w.weeklyPay,
-                  unpaidWeeks: w.unpaidWeeks,
-                  advanceAmount: w.advanceAmount,
-                  advanceNextWeek: false,
-                );
-                _workerService.updateWorker(updated);
-              }
-            }
-          }
-          lastWeekNumber = weekNumber;
-
-          final totalToPay = workers.fold<double>(0, (sum, w) => sum + _calculateAmountToPay(w, weekNumber));
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              Text('Semaine $weekNumber de $year', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 12),
-              Card(
-                color: Colors.red[50],
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                elevation: 0,
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      const Text('Paiements en attente', style: TextStyle(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 8),
-                      Text('Ar ${totalToPay.toStringAsFixed(2)}', style: const TextStyle(fontSize: 24, color: Colors.red, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ),
+      appBar: AppBar(
+        title: const Text('Gestion de maçon'),
+        elevation: 0,
+        actions: [
+          ToggleButtons(
+            isSelected: [_isWeekView, !_isWeekView],
+            onPressed: (index) {
+              setState(() {
+                _isWeekView = index == 0;
+              });
+            },
+            children: const [
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                child: Text('Par semaine'),
               ),
-              const SizedBox(height: 24),
-              const Text('Tous les maçons', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 12),
-              ...workers.map((w) => Card(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                elevation: 0,
-                child: ListTile(
-                  title: Text(w.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: w.advanceAmount > 0
-                      ? Text('Avance: Ar ${w.advanceAmount.toStringAsFixed(2)}' + (w.advanceNextWeek ? ' (semaine prochaine)' : ''))
-                      : null,
-                  trailing: Text('Ar ${_calculateAmountToPay(w, weekNumber).toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
-                  onTap: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => _EditWorkerDialog(worker: w, workerService: _workerService, currentWeek: weekNumber),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                child: Text('Par mois'),
+              ),
+            ],
+          ),
+          const SizedBox(width: 8),
+          if (_isWeekView)
+            IconButton(
+              icon: const Icon(Icons.calendar_today),
+              onPressed: () async {
+                final result = await showDialog<Map<String, int>>(
+                  context: context,
+                  builder: (context) {
+                    int tempYear = _selectedYear;
+                    int tempWeek = _selectedWeek;
+                    return AlertDialog(
+                      title: const Text('Choisir la période (semaine)'),
+                      content: SizedBox(
+                        height: 180,
+                        width: 300,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            DropdownButton<int>(
+                              value: tempYear,
+                              isExpanded: true,
+                              items: List.generate(11, (i) => DateTime.now().year - 5 + i)
+                                  .map((y) => DropdownMenuItem(
+                                        value: y,
+                                        child: Text(y.toString()),
+                                      ))
+                                  .toList(),
+                              onChanged: (v) {
+                                if (v != null) {
+                                  tempYear = v;
+                                  (context as Element).markNeedsBuild();
+                                }
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            DropdownButton<int>(
+                              value: tempWeek,
+                              isExpanded: true,
+                              items: List.generate(53, (i) => i + 1)
+                                  .map((w) => DropdownMenuItem(
+                                        value: w,
+                                        child: Text('Semaine $w'),
+                                      ))
+                                  .toList(),
+                              onChanged: (v) {
+                                if (v != null) {
+                                  tempWeek = v;
+                                  (context as Element).markNeedsBuild();
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Annuler'),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(elevation: 0),
+                          onPressed: () {
+                            Navigator.pop(context, {'year': tempYear, 'week': tempWeek});
+                          },
+                          child: const Text('OK'),
+                        ),
+                      ],
                     );
                   },
+                );
+                if (result != null) {
+                  setState(() {
+                    _selectedYear = result['year']!;
+                    _selectedWeek = result['week']!;
+                  });
+                }
+              },
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.calendar_today),
+              onPressed: () async {
+                final result = await showDialog<Map<String, int>>(
+                  context: context,
+                  builder: (context) {
+                    int tempYear = _selectedMonth.year;
+                    int tempMonth = _selectedMonth.month;
+                    return AlertDialog(
+                      title: const Text('Choisir la période (mois)'),
+                      content: SizedBox(
+                        height: 180,
+                        width: 300,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            DropdownButton<int>(
+                              value: tempYear,
+                              isExpanded: true,
+                              items: List.generate(11, (i) => DateTime.now().year - 5 + i)
+                                  .map((y) => DropdownMenuItem(
+                                        value: y,
+                                        child: Text(y.toString()),
+                                      ))
+                                  .toList(),
+                              onChanged: (v) {
+                                if (v != null) {
+                                  tempYear = v;
+                                  (context as Element).markNeedsBuild();
+                                }
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            DropdownButton<int>(
+                              value: tempMonth,
+                              isExpanded: true,
+                              items: List.generate(12, (i) => i + 1)
+                                  .map((m) => DropdownMenuItem(
+                                        value: m,
+                                        child: Text(DateFormat('MMMM', 'fr_FR').format(DateTime(0, m))),
+                                      ))
+                                  .toList(),
+                              onChanged: (v) {
+                                if (v != null) {
+                                  tempMonth = v;
+                                  (context as Element).markNeedsBuild();
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Annuler'),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(elevation: 0),
+                          onPressed: () {
+                            Navigator.pop(context, {'year': tempYear, 'month': tempMonth});
+                          },
+                          child: const Text('OK'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+                if (result != null) {
+                  setState(() {
+                    _selectedMonth = DateTime(result['year']!, result['month']!, 1);
+                  });
+                }
+              },
+            ),
+        ],
+      ),
+      body: StreamBuilder<List<Worker>>(
+        stream: _workerService.getWorkersForCurrentWeek(),
+        builder: (context, AsyncSnapshot<List<Worker>> snapshot) {
+          if (snapshot.hasError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.red, size: 60),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Une erreur est survenue: ${snapshot.error}',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          final workers = snapshot.data ?? [];
+
+          if (workers.isEmpty) {
+            return const Center(
+              child: Text(
+                'Pas de travailleur dans la base de données',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.grey,
                 ),
-              )),
-              if (workers.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 24),
-                  child: Text('Aucun maçon à payer cette semaine.', style: TextStyle(color: Colors.grey)),
+              ),
+            );
+          }
+
+          String periodLabel;
+          if (_isWeekView) {
+            periodLabel = 'Semaine $_selectedWeek de $_selectedYear';
+          } else {
+            periodLabel = DateFormat('MMMM yyyy', 'fr_FR').format(_selectedMonth);
+          }
+
+          return SafeArea(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    periodLabel,
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
                 ),
-            ],
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: SingleChildScrollView(
+                      child: DataTable(
+                        columns: const [
+                          DataColumn(label: Text('Appellation')),
+                          DataColumn(label: Text('Montant à payer (en Ariary)')),
+                        ],
+                        rows: workers.map((worker) {
+                          double montant = 0;
+                          if (_isWeekView) {
+                            // Calculate for week
+                            DateTime firstDayOfYear = DateTime(_selectedYear, 1, 1);
+                            int daysOffset = (_selectedWeek - 1) * 7 - (firstDayOfYear.weekday - 1);
+                            DateTime weekStart = firstDayOfYear.add(Duration(days: daysOffset));
+                            DateTime weekEnd = weekStart.add(const Duration(days: 6));
+                            if (worker.paymentType == PaymentType.daily) {
+                              // Count non-absent days in the week (regardless of month)
+                              int paidDays = 0;
+                              for (int i = 0; i < 7; i++) {
+                                DateTime day = weekStart.add(Duration(days: i));
+                                bool isAbsent = worker.absences.any((a) {
+                                  DateTime absenceStart = a.date;
+                                  DateTime absenceEnd = absenceStart.add(Duration(days: a.durationDays - 1));
+                                  return !day.isBefore(absenceStart) && !day.isAfter(absenceEnd);
+                                });
+                                if (!isAbsent) {
+                                  paidDays++;
+                                }
+                              }
+                              montant = paidDays * worker.dailyRate;
+                            } else if (worker.paymentType == PaymentType.weekly) {
+                              montant = worker.weeklyRate;
+                            } else {
+                              montant = worker.monthlyRate / 4.345;
+                            }
+                          } else {
+                            // Calculate for month
+                            int daysInMonth = DateUtils.getDaysInMonth(_selectedMonth.year, _selectedMonth.month);
+                            if (worker.paymentType == PaymentType.daily) {
+                              int paidDays = 0;
+                              for (int i = 1; i <= daysInMonth; i++) {
+                                DateTime day = DateTime(_selectedMonth.year, _selectedMonth.month, i);
+                                bool isAbsent = worker.absences.any((a) {
+                                  DateTime absenceStart = a.date;
+                                  DateTime absenceEnd = absenceStart.add(Duration(days: a.durationDays - 1));
+                                  return !day.isBefore(absenceStart) && !day.isAfter(absenceEnd);
+                                });
+                                if (!isAbsent) {
+                                  paidDays++;
+                                }
+                              }
+                              montant = paidDays * worker.dailyRate;
+                            } else if (worker.paymentType == PaymentType.weekly) {
+                              montant = worker.weeklyRate * (daysInMonth / 7);
+                            } else {
+                              montant = worker.monthlyRate;
+                            }
+                          }
+                          montant -= worker.advanceAmount;
+                          return DataRow(
+                            cells: [
+                              DataCell(
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => WorkerDetailScreen(worker: worker),
+                                      ),
+                                    );
+                                  },
+                                  child: Text(worker.appellation),
+                                ),
+                              ),
+                              DataCell(Text(NumberFormat('#,###', 'fr_FR').format(montant))),
+                            ],
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           );
         },
       ),
       floatingActionButton: FloatingActionButton(
         elevation: 0,
-        onPressed: _showAddWorkerDialog,
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const WorkerFormScreen(),
+            ),
+          );
+        },
         child: const Icon(Icons.add),
       ),
-    );
-  }
-}
-
-class _EditWorkerDialog extends StatefulWidget {
-  final Worker worker;
-  final WorkerService workerService;
-  final int currentWeek;
-  const _EditWorkerDialog({required this.worker, required this.workerService, required this.currentWeek});
-
-  @override
-  State<_EditWorkerDialog> createState() => _EditWorkerDialogState();
-}
-
-class _EditWorkerDialogState extends State<_EditWorkerDialog> {
-  late TextEditingController nameController;
-  late TextEditingController weeklyPayController;
-  late TextEditingController advanceController;
-  bool advanceNextWeek = false;
-  final _formKey = GlobalKey<FormState>();
-  late Map<int, double> unpaidWeeks;
-  late Map<int, bool> paidWeeks;
-
-  @override
-  void initState() {
-    super.initState();
-    nameController = TextEditingController(text: widget.worker.name);
-    weeklyPayController = TextEditingController(text: widget.worker.weeklyPay.toString());
-    advanceController = TextEditingController(text: widget.worker.advanceAmount.toString());
-    advanceNextWeek = widget.worker.advanceNextWeek;
-    unpaidWeeks = Map<int, double>.from(widget.worker.unpaidWeeks);
-    paidWeeks = {for (var k in unpaidWeeks.keys) k: false};
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Modifier le maçon'),
-      content: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: nameController,
-                decoration: const InputDecoration(labelText: 'Nom'),
-                validator: (v) => v == null || v.isEmpty ? 'Requis' : null,
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: weeklyPayController,
-                decoration: const InputDecoration(labelText: 'Paye hebdomadaire'),
-                keyboardType: TextInputType.number,
-                validator: (v) => v == null || v.isEmpty ? 'Requis' : null,
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: advanceController,
-                      decoration: const InputDecoration(labelText: 'Avance'),
-                      keyboardType: TextInputType.number,
-                    ),
-                  ),
-                  Checkbox(
-                    value: advanceNextWeek,
-                    onChanged: (val) {
-                      setState(() => advanceNextWeek = val ?? false);
-                    },
-                  ),
-                  const Text('Reporter à la prochaine'),
-                ],
-              ),
-              const SizedBox(height: 8),
-              if (unpaidWeeks.isNotEmpty)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Semaines non payées:', style: TextStyle(fontWeight: FontWeight.bold)),
-                    ...unpaidWeeks.entries.map((e) => Row(
-                      children: [
-                        Expanded(child: Text('Semaine ${e.key}: Ar ${e.value.toStringAsFixed(2)}')),
-                        Checkbox(
-                          value: paidWeeks[e.key] ?? false,
-                          onChanged: (val) {
-                            setState(() {
-                              paidWeeks[e.key] = val ?? false;
-                            });
-                          },
-                        ),
-                        const Text('Payé'),
-                      ],
-                    )),
-                  ],
-                ),
-            ],
-          ),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Annuler'),
-        ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(elevation: 0),
-          onPressed: () async {
-            if (_formKey.currentState!.validate()) {
-              // Remove paid weeks
-              final updatedUnpaidWeeks = Map<int, double>.from(unpaidWeeks)
-                ..removeWhere((k, v) => paidWeeks[k] == true);
-              final updated = Worker(
-                id: widget.worker.id,
-                name: nameController.text.trim(),
-                weeklyPay: double.tryParse(weeklyPayController.text) ?? 0,
-                unpaidWeeks: updatedUnpaidWeeks,
-                advanceAmount: double.tryParse(advanceController.text) ?? 0,
-                advanceNextWeek: advanceNextWeek,
-              );
-              await widget.workerService.updateWorker(updated);
-              if (mounted) Navigator.pop(context);
-            }
-          },
-          child: const Text('Enregistrer'),
-        ),
-      ],
     );
   }
 } 

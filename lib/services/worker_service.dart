@@ -6,20 +6,46 @@ class WorkerService {
   final String _collection = 'workers';
 
   Stream<List<Worker>> getWorkersForCurrentWeek() {
-    // For now, fetch all workers. You can add week filtering logic if needed.
-    return _firestore
-        .collection(_collection)
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => Worker.fromMap(doc.data(), doc.id))
-            .toList());
+    try {
+      return _firestore
+          .collection(_collection)
+          .snapshots()
+          .map((snapshot) {
+            try {
+              return snapshot.docs.map((doc) {
+                try {
+                  return Worker.fromMap(doc.id, doc.data());
+                } catch (e) {
+                  print('Error converting document ${doc.id}: $e');
+                  return null;
+                }
+              }).where((worker) => worker != null).cast<Worker>().toList();
+            } catch (e) {
+              print('Error processing snapshot: $e');
+              return <Worker>[];
+            }
+          });
+    } catch (e) {
+      print('Error setting up stream: $e');
+      return Stream.value(<Worker>[]);
+    }
   }
 
   Future<void> addWorker(Worker worker) async {
-    await _firestore.collection(_collection).add(worker.toMap());
+    try {
+      await _firestore.collection(_collection).add(worker.toMap());
+    } catch (e) {
+      print('Error adding worker: $e');
+      rethrow;
+    }
   }
 
   Future<void> updateWorker(Worker worker) async {
-    await _firestore.collection(_collection).doc(worker.id).update(worker.toMap());
+    try {
+      await _firestore.collection(_collection).doc(worker.id).update(worker.toMap());
+    } catch (e) {
+      print('Error updating worker: $e');
+      rethrow;
+    }
   }
 } 
