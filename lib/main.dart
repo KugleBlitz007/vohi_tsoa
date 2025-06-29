@@ -7,10 +7,12 @@ import 'screens/reservation_screen.dart';
 import 'screens/payments_screen.dart';
 import 'services/auth_service.dart';
 import 'models/home_section.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  await initializeDateFormatting('fr_FR', null);
   runApp(const MyApp());
 }
 
